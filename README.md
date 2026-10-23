@@ -128,4 +128,49 @@ Keep screenshots in the `evidence/` folder and ensure they do not contain passwo
 
 ## Responsible Use
 
+Security Findings
+
+Finding 1: SQL Error Disclosure
+
+- Target: OWASP Juice Shop product-search endpoint
+- Observation: A crafted search input triggered an HTTP 500 response containing a SQLite error and SQL query details.
+- Potential impact: Detailed database errors can reveal implementation information and help an attacker understand the application's database behaviour.
+- Assessment: Potential SQL injection risk and database error disclosure. Exploitability was not conclusively confirmed by the tests performed.
+- Recommendation: Use parameterized SQL queries, validate input appropriately, and return generic error messages to users.
+
+Finding 2: SQL Injection Prevention Demonstration
+
+A separate Python demonstration compares unsafe SQL string construction with parameterized queries using SQLite.
+
+The demonstration shows how parameterized queries treat user-supplied values as data rather than executable SQL logic.
+
+Finding 3: Cross-Site Scripting Test
+
+Search-field payloads were tested in the local lab. The tested payloads did not produce a JavaScript alert, so cross-site scripting was not demonstrated by these tests.
+
+Evidence
+
+Screenshots and supporting files are available in the ""evidence"" (./evidence) directory.
+
+The Python demonstration is available in ""scripts/secure_sql_demo.py"" (./scripts/secure_sql_demo.py).
+
+The assessment report is available in the ""reports"" (./reports) directory.
+
+Recommendations
+
+1. Use parameterized queries for all database operations.
+2. Avoid exposing database errors and internal SQL details to users.
+3. Validate input according to the application's requirements.
+4. Apply context-appropriate output encoding to prevent cross-site scripting.
+5. Repeat security tests after implementing fixes.
+6. Keep dependencies updated and review application logs for suspicious activity.
+
+Limitations
+
+This was a limited assessment of a deliberately vulnerable application running locally. The results do not represent a complete penetration test. Only the behaviours documented in the evidence were observed, and untested vulnerabilities may remain.
+
+Disclaimer
+
+This project was conducted for educational and portfolio purposes in a local test environment. Do not test systems without explicit authorization.
+
 OWASP Juice Shop is intentionally vulnerable and is used here as a local training target. Only assess systems you own or have explicit permission to test.
