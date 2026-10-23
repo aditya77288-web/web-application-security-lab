@@ -1,176 +1,122 @@
-# Web Application Security Assessment & Hardening Lab
+Web Application Security Assessment & Hardening Lab
 
-A hands-on cybersecurity portfolio project documenting a limited assessment of OWASP Juice Shop in a local lab, alongside a separate Python demonstration of SQL injection prevention with parameterized queries.
+A hands-on cybersecurity portfolio project focused on web application testing, security evidence collection, database error analysis, and secure SQL coding practices.
 
-> **Scope note:** This is an educational lab report, not a full penetration test. The observed Juice Shop behavior indicates database error disclosure and a potential SQL injection risk; exploitability was not confirmed. The XSS payloads tested did not demonstrate XSS.
+Project Overview
 
-## Project Goals
+This project documents a limited security assessment of OWASP Juice Shop running locally in a controlled lab environment. Burp Suite Community Edition was used to inspect and replay HTTP requests, and Python with SQLite was used to demonstrate SQL injection prevention through parameterized queries.
+
+Important: This was a limited educational assessment, not a full penetration test. SQL injection exploitability was not conclusively confirmed in Juice Shop.
+
+Objectives
 
 - Set up a local web application security testing environment.
-- Inspect and replay HTTP requests with Burp Suite Community Edition.
-- Compare normal search behavior with selected unusual inputs.
-- Document security observations with supporting evidence.
-- Demonstrate parameterized SQL queries in Python and SQLite.
-- Recommend remediation and retesting steps.
+- Inspect HTTP requests and responses using Burp Suite.
+- Compare normal and unusual product-search inputs.
+- Document database error disclosure and potential SQL injection risk.
+- Demonstrate parameterized SQL queries using Python and SQLite.
+- Record evidence and recommend security improvements.
 
-## Lab Environment
+Tools and Technologies
 
-| Component | Use |
-|---|---|
-| Windows 11 | Host operating system |
-| Docker Desktop | Runs the local target application |
-| OWASP Juice Shop | Deliberately vulnerable training application |
-| Burp Suite Community Edition | HTTP request inspection and Repeater testing |
-| Python 3.13 | Runs the secure SQL demonstration |
-| SQLite | In-memory database used by the demonstration |
+Tool| Purpose
+OWASP Juice Shop| Deliberately vulnerable training application
+Burp Suite Community Edition| HTTP request inspection and replay
+Docker Desktop| Local application environment
+Python| Secure SQL coding demonstration
+SQLite| Database for the isolated demonstration
+Windows 11| Host operating system
 
-**Local target:** `http://localhost:3000`
+Key Findings
 
-Testing described here was limited to the locally hosted training application. Do not test systems without explicit authorization.
+1. Database Error Disclosure
 
-## Assessment Summary
+A crafted SQL-like search input produced an HTTP 500 response containing SQLite error details and query information.
 
-### Finding F-01 — Database Error Disclosure / Potential SQL Injection
+- Status: Open; further validation required.
+- Provisional severity: Medium.
+- Risk: Database implementation details were exposed.
+- Limitation: The recorded evidence did not conclusively establish exploitable SQL injection.
 
-A crafted product-search input caused an HTTP `500 Internal Server Error`. The response exposed SQLite error text (`incomplete input`) and SQL query details.
+Recommended remediation:
 
-**Assessment:** This demonstrates verbose database error disclosure and suggests a potential SQL injection risk. It does **not** independently prove exploitable SQL injection because successful query manipulation or unauthorized data access was not established.
-
-**Recommended remediation:**
-- Use prepared statements / parameterized queries for user-controlled values.
-- Do not concatenate user input into SQL statements.
+- Use parameterized SQL queries.
 - Return generic error messages to clients.
-- Store detailed exceptions in server-side logs.
-- Repeat the original test after a real fix and record before/after evidence.
+- Keep detailed exceptions in server-side logs.
+- Add regression tests for malformed inputs.
 
-### Basic XSS Checks
+2. Cross-Site Scripting Checks
 
-Two payloads were tried in the product-search interface:
+Two basic XSS payloads were tested through the product-search interface. No JavaScript alert was observed.
 
-- `<script>alert('XSS')</script>`
-- `<img src=x onerror=alert(1)>`
+Result: XSS was not demonstrated by these tests. This does not establish that the application is free from XSS vulnerabilities.
 
-No JavaScript alert appeared; the interface displayed “No results found.”
+3. Secure SQL Demonstration
 
-**Assessment:** XSS was not demonstrated with these tested payloads. This does not prove that the application is free from XSS.
+A separate Python/SQLite script compared unsafe SQL string concatenation with parameterized queries.
 
-## Python Secure SQL Demonstration
+The unsafe demonstration allowed SQL-like input to change query logic and return multiple demo records. The parameterized version treated the input as data and returned no matches.
 
-The script `scripts/secure_sql_demo.py` compares an unsafe SQL query built through string concatenation with a parameterized query using a temporary in-memory SQLite database.
+Security lesson: User input should be passed as query parameters rather than concatenated into SQL statements.
 
-For the SQL-like input `' OR '1'='1' --`:
+This demonstration is separate from Juice Shop and is not a patch to that application.
 
-- The unsafe query returned all three demo usernames.
-- The parameterized query returned no matches.
+Repository Structure
 
-This illustrates how parameterized queries treat user input as data rather than allowing it to change query logic.
-
-**Important:** This is a separate, deliberately simplified coding demonstration. It is not a patch to OWASP Juice Shop and does not confirm or remediate the Juice Shop finding.
-
-## Repository Structure
-
-```text
 web-application-security-lab/
 ├── README.md
-├── reports/
-│   └── OWASP_Juice_Shop_Web_Application_Security_Assessment_Report_UPDATED.docx
 ├── evidence/
-│   ├── 03_Search_Endpoint_Baseline.png
-│   ├── Evidence-01-SQL-Error.png
-│   └── Evidence-02-SQL-Injection-Prevention-Demo.png
-├── notes/
+│   ├── README.md
+│   └── [security testing screenshots]
+├── reports/
+│   ├── README.md
+│   └── OWASP_Juice_Shop_Web_Application_Security_Assessment_Report_UPDATED.docx
 └── scripts/
+    ├── README.md
     └── secure_sql_demo.py
-```
 
-The evidence filenames above are examples based on the files recorded during the lab. Confirm that each referenced file exists before publishing the repository. Add other relevant screenshots as needed, and avoid treating duplicate screenshots as separate findings.
+The structure above describes the intended organization. Evidence filenames may vary slightly from the examples in the report.
 
-## Reproduce the Python Demonstration
+Evidence and Documentation
 
-From the project directory, run:
+- "evidence/" — Screenshots of baseline requests, input tests, database errors, and the Python demonstration.
+- "reports/" — Detailed assessment report, observations, limitations, and remediation recommendations.
+- "scripts/" — Python script demonstrating parameterized SQL queries.
 
-```bat
-cd scripts
+How to Run the Python Demonstration
+
+Ensure Python 3 is installed, then run:
+
 python secure_sql_demo.py
-```
 
-The script uses Python's built-in `sqlite3` module and requires no additional packages.
+Run this command from the "scripts" directory.
 
-## Evidence and Report
+The script uses an in-memory SQLite database and is intended for educational purposes.
+- SQL injection exploitability in Juice Shop was not conclusively established.
+- The tested XSS payloads did not demonstrate XSS.
+- Comprehensive authentication, authorization, session, and file-upload testing was not completed.
+- Juice Shop itself was not patched or retested after remediation.
+- The Python demonstration is a separate secure-coding example.
 
-The full report should document:
-- Scope and methodology
-- Test inputs and observed responses
-- The provisional finding and its limitations
-- XSS test results
-- Python demonstration results
-- Remediation recommendations and a retest plan
+Learning Outcomes
 
-Keep screenshots in the `evidence/` folder and ensure they do not contain passwords, tokens, personal data, or unrelated private messages before publishing.
+- HTTP request and response analysis.
+- Manual web application security testing.
+- Evidence collection and technical reporting.
+- Recognition of database error disclosure.
+- Secure SQL coding with parameterized queries.
+- Communicating findings and limitations accurately.
 
-## Limitations
+Authorization and Responsible Testing
 
-- Testing covered a small set of inputs on one search endpoint.
-- SQL injection exploitability was not conclusively established.
-- The two XSS payloads did not trigger JavaScript; other contexts were not comprehensively tested.
-- Authentication, authorization, session handling, file uploads, and broad API coverage are not documented as completed.
-- No comprehensive automated scanner results are claimed.
-- The Python example is separate from the target application.
+All testing was conducted against a local training application. Test only systems you own or have explicit authorization to assess.
 
-## Learning Outcomes
+Project Status
 
-- Intercepting and replaying HTTP requests
-- Comparing baseline and unusual input responses
-- Recognizing verbose database error disclosure
-- Understanding parameterized SQL queries
-- Recording evidence and writing cautious security findings
-- Recommending remediation and retesting
+Completed so far: Local lab setup, selected manual tests, evidence collection, assessment report, and Python SQL injection prevention demonstration.
 
-## Responsible Use
-
-Security Findings
-
-Finding 1: SQL Error Disclosure
-
-- Target: OWASP Juice Shop product-search endpoint
-- Observation: A crafted search input triggered an HTTP 500 response containing a SQLite error and SQL query details.
-- Potential impact: Detailed database errors can reveal implementation information and help an attacker understand the application's database behaviour.
-- Assessment: Potential SQL injection risk and database error disclosure. Exploitability was not conclusively confirmed by the tests performed.
-- Recommendation: Use parameterized SQL queries, validate input appropriately, and return generic error messages to users.
-
-Finding 2: SQL Injection Prevention Demonstration
-
-A separate Python demonstration compares unsafe SQL string construction with parameterized queries using SQLite.
-
-The demonstration shows how parameterized queries treat user-supplied values as data rather than executable SQL logic.
-
-Finding 3: Cross-Site Scripting Test
-
-Search-field payloads were tested in the local lab. The tested payloads did not produce a JavaScript alert, so cross-site scripting was not demonstrated by these tests.
-
-Evidence
-
-Screenshots and supporting files are available in the ""evidence"" (./evidence) directory.
-
-The Python demonstration is available in ""scripts/secure_sql_demo.py"" (./scripts/secure_sql_demo.py).
-
-The assessment report is available in the ""reports"" (./reports) directory.
-
-Recommendations
-
-1. Use parameterized queries for all database operations.
-2. Avoid exposing database errors and internal SQL details to users.
-3. Validate input according to the application's requirements.
-4. Apply context-appropriate output encoding to prevent cross-site scripting.
-5. Repeat security tests after implementing fixes.
-6. Keep dependencies updated and review application logs for suspicious activity.
+Potential future improvements: Expand the test coverage, add automated regression tests, and document a genuine before-and-after remediation test.
 
 Limitations
 
-This was a limited assessment of a deliberately vulnerable application running locally. The results do not represent a complete penetration test. Only the behaviours documented in the evidence were observed, and untested vulnerabilities may remain.
-
-Disclaimer
-
-This project was conducted for educational and portfolio purposes in a local test environment. Do not test systems without explicit authorization.
-
-OWASP Juice Shop is intentionally vulnerable and is used here as a local training target. Only assess systems you own or have explicit permission to test.
+- Testing focused on a limited set of inputs for one search endpoint.
